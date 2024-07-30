@@ -10,25 +10,18 @@ fn main() -> std::io::Result<()> {
 
     let handler = builder
         .spawn(|| {
-            let mut img = img_to_line::get_image("images/big_apple.jpg");
+            let img = img_to_line::get_image("images/shapes1.png");
 
             let now = Instant::now();
-            let blurred = edge_detection::gaussian_blur_5x5(&img);
-            blurred.save("generated/blurred.png").unwrap();
-            println!("Gaussian blur new: {:?}", now.elapsed());
-
-            let now = Instant::now();
-            let mut edges = edge_detection::sobel_default(&img);
+            let mut edges = edge_detection::canny(&img, 50.0, 100.0);
             println!("Sobel: {:?}", now.elapsed());
             edges.save("generated/edges.png").unwrap();
 
-            let blurred_edges = edge_detection::sobel(&blurred);
-            blurred_edges.save("generated/blurred_edges.png").unwrap();
-
             let now = Instant::now();
-            let mut lines = img_to_line::edges_to_lines_w(&mut edges);
+            let mut lines = img_to_line::edges_to_lines_b(&mut edges);
             lines.sort_by_key(|b| std::cmp::Reverse(b.len())); // sort by length
             lines.truncate(32); // only take n longest lines
+            img_to_line::lines_to_img(&lines);
             println!("Edges to lines: {:?}", now.elapsed());
 
             let mut file = File::create("generated/equations.txt").unwrap();
